@@ -1,0 +1,2 @@
+# Optional for real model inference; app falls back to simulated detections if unavailable.
+ultralytics>=8.0.0

@@ -1,0 +1,103 @@
+:root {
+  --bg: #0b1220;
+  --panel: #121c31;
+  --text: #f8fafc;
+  --muted: #b5c3de;
+  --accent: #3b82f6;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+h1,
+h2 {
+  margin-top: 0;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.panel {
+  background: var(--panel);
+  border: 2px solid #1f2a45;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.btn {
+  border: 2px solid #3b4f79;
+  background: #1d2b4b;
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  outline: 3px solid #dbeafe;
+  outline-offset: 1px;
+}
+
+.primary { background: var(--accent); }
+.warning { background: var(--warning); color: #111827; }
+.danger { background: var(--danger); }
+
+#statusText {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+#routeList {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+#routeList li.current {
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+#visionText {
+  font-size: 1rem;
+  color: #c7d2fe;
+}
