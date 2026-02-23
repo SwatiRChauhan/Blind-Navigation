@@ -2,46 +2,48 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AEGIS Voice Navigation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Vision Companion</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app-shell" aria-labelledby="app-title">
-      <header class="topbar">
-        <p id="systemState" class="system-state" role="status" aria-live="polite">● System Status: Inactive</p>
-        <button id="micBtn" class="mic-btn" aria-label="Toggle voice command listening">🎙️</button>
+    <main id="app" class="app" aria-live="polite">
+      <header class="header">
+        <p id="tapHint" class="tap-hint">● Tap anywhere to start</p>
+        <h1>Vision Companion</h1>
+        <p class="subtitle">Audio-first blind navigation assistant</p>
       </header>
 
-      <section class="hero" aria-label="Voice-first activation panel">
-        <h1 id="app-title">AEGIS <span>voice mode</span></h1>
-        <div class="shield" aria-hidden="true">🛡️</div>
-        <p class="activation-label">Hands-free mode</p>
-        <p class="activation-phrase">“Assistant start navigation”</p>
-        <p class="activation-alt">Say “Assistant stop” to end immediately</p>
+      <section id="centerRing" class="center-ring stopped" aria-label="Assistant status">
+        <div class="icon" id="centerIcon">🎙️</div>
+        <p id="centerState" class="state-text">Stopped</p>
       </section>
 
-      <section class="status-card" aria-label="Live spoken status">
-        <h2>Live Safety Status</h2>
-        <p id="statusText">Ready. Tap microphone to grant audio + camera permission.</p>
-        <p id="permissionText">Permissions: not granted</p>
-        <p id="locationText">Location: Not started</p>
-        <p id="visionText">Vision: Waiting for voice command “scan scene”.</p>
+      <section class="status-grid" aria-label="Sensors">
+        <article class="status-card">
+          <p class="label">GPS</p>
+          <p id="gpsState">Off</p>
+        </article>
+        <article class="status-card">
+          <p class="label">Vision</p>
+          <p id="visionState">Off</p>
+        </article>
       </section>
 
-      <section class="voice-help" aria-label="Voice command reference">
-        <h2>Voice Commands</h2>
-        <ul>
-          <li>“Assistant start navigation”</li>
-          <li>“Next”, “Repeat”, “Where am I”</li>
-          <li>“Scan scene”, “Stop”, “Help”</li>
-        </ul>
+      <section class="panel">
+        <p id="statusText">Tap anywhere to start navigation</p>
+        <p id="permissionText">Permissions: microphone, camera, location not granted</p>
+      </section>
+
+      <section class="panel panel-small">
+        <p class="foot">Voice: “start navigation”, “stop”, “what is ahead”, “describe surroundings”</p>
       </section>
 
       <video id="cameraPreview" class="sr-only" autoplay playsinline muted></video>
+      <canvas id="frameCanvas" class="sr-only"></canvas>
+      <div id="liveRegion" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
     </main>
 
-    <div id="liveRegion" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
     <script src="app.js"></script>
   </body>
 </html>

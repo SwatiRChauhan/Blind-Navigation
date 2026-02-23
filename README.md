@@ -20,3 +20,12 @@ This repository now includes a **safety-critical Python core** for an offline, a
 ```bash
 python -m pytest tests -q
 ```
+
+
+## Vision Companion mobile web mode
+- Set Gemini key in browser console once:
+  `localStorage.setItem("GEMINI_API_KEY", "YOUR_KEY")`
+- Run mobile server:
+  `python mobile_runner.py`
+- Open on your phone browser (same device): `http://127.0.0.1:4173`
+- Tap anywhere to start: app requests microphone, camera, and location permissions.

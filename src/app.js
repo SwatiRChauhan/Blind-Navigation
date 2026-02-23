@@ -1,222 +1,335 @@
-const route = [
-  { name: "Main Entrance", instruction: "Face forward and walk 15 meters to the reception desk." },
-  { name: "Reception Desk", instruction: "Turn right and continue 10 meters toward the elevator." },
-  { name: "Elevator", instruction: "Move slightly left and walk 8 meters to the tactile floor marker." },
-  { name: "Tactile Marker", instruction: "Continue straight for 12 meters. Destination is on your right." },
-  { name: "Destination", instruction: "You have arrived at your destination." }
-];
-
-class BlindNavigationApp {
+class VisionCompanionApp {
   constructor() {
-    this.index = -1;
     this.active = false;
-    this.recognition = null;
     this.listening = false;
+    this.recognition = null;
     this.mediaStream = null;
+    this.geoWatchId = null;
+    this.frameTimer = null;
+    this.audioQueue = [];
+    this.speaking = false;
+    this.lastInstruction = "";
+    this.currentCoords = null;
 
-    this.appShell = document.querySelector(".app-shell");
-    this.systemState = document.getElementById("systemState");
+    this.apiKey = localStorage.getItem("GEMINI_API_KEY") || "";
+    this.model = "gemini-2.0-flash";
+
+    this.app = document.getElementById("app");
+    this.tapHint = document.getElementById("tapHint");
+    this.centerRing = document.getElementById("centerRing");
+    this.centerIcon = document.getElementById("centerIcon");
+    this.centerState = document.getElementById("centerState");
     this.statusText = document.getElementById("statusText");
     this.permissionText = document.getElementById("permissionText");
-    this.locationText = document.getElementById("locationText");
-    this.visionText = document.getElementById("visionText");
+    this.gpsState = document.getElementById("gpsState");
+    this.visionState = document.getElementById("visionState");
     this.liveRegion = document.getElementById("liveRegion");
-    this.micBtn = document.getElementById("micBtn");
-    this.cameraPreview = document.getElementById("cameraPreview");
+    this.video = document.getElementById("cameraPreview");
+    this.canvas = document.getElementById("frameCanvas");
 
-    this.micBtn.addEventListener("click", () => this.toggleVoiceRecognition());
-    this.setupVoiceRecognition();
-    this.checkBackend();
-    this.updateSystemState();
+    document.body.addEventListener("click", () => this.toggleAssistant());
+    this.setupSpeechRecognition();
+    this.updateUi();
   }
 
-  updateSystemState() {
-    this.systemState.textContent = `● System Status: ${this.active ? "Active" : "Inactive"}`;
-    this.appShell.classList.toggle("active", this.active);
+  announce(text, priority = "normal") {
+    this.liveRegion.textContent = text;
+    this.lastInstruction = text;
+    if (priority === "danger") this.setDangerVisual(true);
+    this.enqueueSpeech(text);
+    this.statusText.textContent = text;
+    if (priority === "danger") setTimeout(() => this.setDangerVisual(false), 2000);
   }
 
-  async ensureMediaPermissions() {
-    if (this.mediaStream) return true;
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      this.permissionText.textContent = "Permissions: unsupported browser";
-      this.announce("Microphone and camera permissions are not supported on this browser.");
-      return false;
-    }
-
-    try {
-      this.permissionText.textContent = "Permissions: requesting microphone and camera access...";
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: { facingMode: "environment" }
-      });
-
-      this.cameraPreview.srcObject = this.mediaStream;
-      this.permissionText.textContent = "Permissions: microphone and camera granted";
-      return true;
-    } catch {
-      this.permissionText.textContent = "Permissions: denied (microphone and camera required)";
-      this.announce("Permission denied. Please allow microphone and camera access.");
-      return false;
-    }
+  enqueueSpeech(text) {
+    this.audioQueue.push(text);
+    if (!this.speaking) this.flushSpeechQueue();
   }
 
-  releaseMediaPermissions() {
-    if (!this.mediaStream) return;
-
-    this.mediaStream.getTracks().forEach((track) => track.stop());
-    this.mediaStream = null;
-    this.cameraPreview.srcObject = null;
-    this.permissionText.textContent = "Permissions: released";
-  }
-
-  async checkBackend() {
-    try {
-      const response = await fetch("/health");
-      if (!response.ok) throw new Error("health failed");
-      const data = await response.json();
-      this.visionText.textContent = `Vision: backend ${data.backend}, engine ready: ${data.yolo_ready ? "yes" : "fallback"}`;
-    } catch {
-      this.visionText.textContent = "Vision: backend unavailable. Start with `python server.py`.";
-    }
-  }
-
-  startGuidance() {
-    if (this.active) return this.announce("Guidance is already active.");
-    this.active = true;
-    this.index = 0;
-    this.updateSystemState();
-    this.updateForCurrentStep("Guidance started.");
-  }
-
-  nextStep() {
-    if (!this.active) return this.announce("Guidance is not active. Say assistant start navigation.");
-    if (this.index < route.length - 1) {
-      this.index += 1;
-      return this.updateForCurrentStep("Proceeding to the next waypoint.");
-    }
-    this.announce("You are already at the destination.");
-  }
-
-  repeatStep() {
-    if (!this.active || this.index < 0) return this.announce("No active step to repeat.");
-    this.announce(`Repeating current step. ${route[this.index].instruction}`);
-  }
-
-  async scanScene() {
-    const permissionsReady = await this.ensureMediaPermissions();
-    if (!permissionsReady) return;
-
-    this.visionText.textContent = "Vision: scanning scene with Python YOLO service...";
-    try {
-      const response = await fetch("/api/detect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ guidance_mode: this.active })
-      });
-      if (!response.ok) throw new Error("Detection failed");
-      const data = await response.json();
-      this.visionText.textContent = `Vision [${data.engine}]: ${data.summary}`;
-      this.announce(data.alert);
-    } catch {
-      this.visionText.textContent = "Vision scan failed. Ensure Python backend is running (`python server.py`).";
-      this.announce("Vision scan failed. Continue cautiously.");
-    }
-  }
-
-  stopGuidance() {
-    if (!this.active) return this.announce("Guidance is already stopped.");
-    this.active = false;
-    this.index = -1;
-    this.updateSystemState();
-    this.statusText.textContent = "Guidance stopped. Say start command when ready.";
-    this.locationText.textContent = "Location: Navigation paused";
-    this.speak("Guidance stopped.");
-  }
-
-  updateForCurrentStep(prefix) {
-    const step = route[this.index];
-    const combined = `${prefix} ${step.instruction}`;
-    this.statusText.textContent = combined;
-    this.locationText.textContent = `Location: ${step.name} (${this.index + 1} of ${route.length})`;
-    this.announce(combined);
-  }
-
-  announce(message) {
-    this.liveRegion.textContent = message;
-    this.speak(message);
-  }
-
-  speak(text) {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1;
-    window.speechSynthesis.speak(utterance);
-  }
-
-  setupVoiceRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      this.micBtn.disabled = true;
-      this.micBtn.textContent = "🚫";
-      this.micBtn.setAttribute("aria-label", "Voice command unsupported");
+  flushSpeechQueue() {
+    if (!this.audioQueue.length) {
+      this.speaking = false;
       return;
     }
 
-    this.recognition = new SpeechRecognition();
+    this.speaking = true;
+    const text = this.audioQueue.shift();
+    if (!window.speechSynthesis) {
+      this.speaking = false;
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.onend = () => this.flushSpeechQueue();
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }
+
+  setDangerVisual(enabled) {
+    this.centerRing.classList.toggle("danger", enabled);
+    this.centerIcon.textContent = enabled ? "⚠️" : this.active ? "🎤" : "🎙️";
+  }
+
+  updateUi() {
+    this.centerRing.classList.toggle("active", this.active);
+    this.centerRing.classList.toggle("stopped", !this.active);
+    this.centerIcon.textContent = this.active ? "🎤" : "🎙️";
+    this.centerState.textContent = this.active ? "Listening" : "Stopped";
+    this.tapHint.textContent = this.active ? "● Tap anywhere to stop" : "● Tap anywhere to start";
+  }
+
+  async toggleAssistant() {
+    if (!this.active) {
+      const ok = await this.acquirePermissions();
+      if (!ok) return;
+      this.active = true;
+      this.updateUi();
+      this.startVoiceInput();
+      this.startGpsWatch();
+      this.startVisionLoop();
+      this.announce("Assistant started. Say start navigation.");
+    } else {
+      this.stopAll();
+      this.announce("Assistant stopped.");
+    }
+  }
+
+  async acquirePermissions() {
+    const checks = [];
+
+    try {
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+        video: {
+          facingMode: "environment",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+      });
+      this.video.srcObject = this.mediaStream;
+      checks.push("mic+camera granted");
+      this.visionState.textContent = "Ready";
+    } catch {
+      checks.push("mic+camera denied");
+      this.visionState.textContent = "Denied";
+      this.announce("Microphone and camera permission required.", "danger");
+      this.permissionText.textContent = `Permissions: ${checks.join(", ")}`;
+      return false;
+    }
+
+    if (!navigator.geolocation) {
+      checks.push("gps unsupported");
+      this.gpsState.textContent = "Unsupported";
+    } else {
+      checks.push("gps pending");
+      this.gpsState.textContent = "Pending";
+    }
+
+    this.permissionText.textContent = `Permissions: ${checks.join(", ")}`;
+    return true;
+  }
+
+  releasePermissions() {
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach((track) => track.stop());
+      this.mediaStream = null;
+      this.video.srcObject = null;
+    }
+
+    if (this.geoWatchId !== null) {
+      navigator.geolocation.clearWatch(this.geoWatchId);
+      this.geoWatchId = null;
+    }
+
+    if (this.frameTimer) {
+      clearInterval(this.frameTimer);
+      this.frameTimer = null;
+    }
+  }
+
+  startVoiceInput() {
+    if (!this.recognition) return;
+    this.listening = true;
+    this.recognition.start();
+  }
+
+  setupSpeechRecognition() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+
+    this.recognition = new SR();
     this.recognition.continuous = true;
     this.recognition.lang = "en-US";
     this.recognition.interimResults = false;
 
     this.recognition.onresult = (event) => {
-      const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-      this.handleCommand(transcript);
+      const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+      this.handleCommand(command);
     };
 
     this.recognition.onend = () => {
-      if (this.listening) this.recognition.start();
+      if (this.active && this.listening) this.recognition.start();
     };
-
-    this.recognition.onerror = () => {
-      this.announce("Voice recognition error. Please try again.");
-    };
-  }
-
-  async toggleVoiceRecognition() {
-    if (!this.recognition) return;
-
-    if (!this.listening) {
-      const permissionsReady = await this.ensureMediaPermissions();
-      if (!permissionsReady) return;
-    }
-
-    this.listening = !this.listening;
-    this.micBtn.textContent = this.listening ? "🟢" : "🎙️";
-    this.micBtn.setAttribute("aria-label", `Voice command ${this.listening ? "on" : "off"}`);
-
-    if (this.listening) {
-      this.recognition.start();
-      this.announce("Voice command activated.");
-    } else {
-      this.recognition.stop();
-      this.announce("Voice command deactivated.");
-      if (!this.active) this.releaseMediaPermissions();
-    }
   }
 
   handleCommand(command) {
-    if (command.includes("assistant start navigation") || command.includes("start")) return this.startGuidance();
-    if (command.includes("next")) return this.nextStep();
-    if (command.includes("repeat")) return this.repeatStep();
-    if (command.includes("scan")) return this.scanScene();
-    if (command.includes("stop")) return this.stopGuidance();
-    if (command.includes("where am i") || command.includes("location")) return this.announce(this.locationText.textContent);
-    if (command.includes("help")) {
-      return this.announce("Say: assistant start navigation, next, repeat, scan scene, where am I, stop.");
+    if (command.includes("stop")) return this.stopAll();
+    if (command.includes("start navigation")) return this.announce("Navigation active. Listening for hazards.");
+    if (command.includes("what is ahead") || command.includes("describe surroundings")) return this.runImmediateVision();
+    if (command.includes("repeat")) return this.announce(this.lastInstruction || "No instruction yet.");
+    this.announce(`Command heard: ${command}`);
+  }
+
+  startGpsWatch() {
+    if (!navigator.geolocation) return;
+
+    this.geoWatchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        this.currentCoords = pos.coords;
+        this.gpsState.textContent = "Locked";
+      },
+      () => {
+        this.gpsState.textContent = "Denied";
+        this.announce("Location permission denied. Navigation context reduced.");
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+  }
+
+  startVisionLoop() {
+    this.frameTimer = setInterval(() => this.analyzeFrame(), 1000);
+  }
+
+  async runImmediateVision() {
+    await this.analyzeFrame();
+  }
+
+  async analyzeFrame() {
+    if (!this.video.srcObject) return;
+
+    const frame = this.captureDownscaledFrame();
+    if (!frame) return;
+
+    try {
+      const prompt = this.buildSafetyPrompt();
+      const summary = await this.callGeminiWithRetry(frame, prompt);
+      this.visionState.textContent = "On";
+      this.processSafetySummary(summary);
+    } catch (error) {
+      this.visionState.textContent = "Error";
+      this.announce("Network or AI issue. Falling back to local scan.");
+      await this.fallbackLocalScan();
     }
-    this.announce(`Unknown command: ${command}`);
+  }
+
+  captureDownscaledFrame() {
+    const w = 320;
+    const h = 240;
+    this.canvas.width = w;
+    this.canvas.height = h;
+    const ctx = this.canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return null;
+    ctx.drawImage(this.video, 0, 0, w, h);
+    return this.canvas.toDataURL("image/jpeg", 0.6).split(",")[1];
+  }
+
+  buildSafetyPrompt() {
+    const gps = this.currentCoords
+      ? `GPS lat ${this.currentCoords.latitude.toFixed(5)}, lon ${this.currentCoords.longitude.toFixed(5)}`
+      : "GPS unavailable";
+
+    return [
+      "You are Vision Companion AI for blind safety navigation.",
+      "Return a SHORT response only.",
+      "Priority: immediate danger > guidance > awareness.",
+      "Use clock direction and distance estimates.",
+      "Examples: STOP! Vehicle left. Obstacle 2m ahead. Path clear 5 meters.",
+      gps,
+    ].join(" ");
+  }
+
+  async callGeminiWithRetry(base64Image, prompt, attempt = 1) {
+    if (!this.apiKey) {
+      throw new Error("Missing Gemini API key. Set localStorage.GEMINI_API_KEY");
+    }
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: prompt },
+                { inline_data: { mime_type: "image/jpeg", data: base64Image } },
+              ],
+            },
+          ],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 60 },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Gemini error ${response.status}`);
+      }
+
+      const json = await response.json();
+      return json?.candidates?.[0]?.content?.parts?.[0]?.text || "Unclear environment. Move slowly.";
+    } catch (error) {
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, attempt * 700));
+        return this.callGeminiWithRetry(base64Image, prompt, attempt + 1);
+      }
+      throw error;
+    }
+  }
+
+  processSafetySummary(text) {
+    const lower = text.toLowerCase();
+    if (lower.includes("stop") || lower.includes("vehicle") || lower.includes("very close")) {
+      this.announce(text, "danger");
+      return;
+    }
+    this.announce(text);
+  }
+
+  async fallbackLocalScan() {
+    try {
+      const response = await fetch("/api/detect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guidance_mode: true }),
+      });
+      const data = await response.json();
+      this.announce(data.alert || "Unclear environment. Move slowly.");
+    } catch {
+      this.announce("Unclear environment. Move slowly.", "danger");
+    }
+  }
+
+  stopAll() {
+    this.active = false;
+    this.listening = false;
+    this.updateUi();
+
+    if (this.recognition) {
+      try { this.recognition.stop(); } catch {}
+    }
+
+    this.releasePermissions();
+    this.gpsState.textContent = "Off";
+    this.visionState.textContent = "Off";
+    this.permissionText.textContent = "Permissions: released";
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => new BlindNavigationApp());
+window.addEventListener("DOMContentLoaded", () => new VisionCompanionApp());

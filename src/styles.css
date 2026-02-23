@@ -1,157 +1,98 @@
 :root {
-  --bg: #05070d;
-  --card: rgba(10, 22, 42, 0.9);
+  --bg: #02050c;
+  --card: #0b111d;
+  --line: #1f2a3f;
   --text: #f8fafc;
-  --muted: #b7c3dd;
-  --teal: #00e5a8;
-  --line: rgba(180, 198, 233, 0.28);
+  --muted: #a8b2c8;
+  --ok: #00e3a8;
+  --danger: #ff4d67;
 }
 
 * { box-sizing: border-box; }
-
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: Inter, Arial, sans-serif;
   color: var(--text);
-  background:
-    radial-gradient(circle at 70% 20%, rgba(0, 229, 168, 0.12), transparent 35%),
-    radial-gradient(circle at 25% 65%, rgba(47, 125, 255, 0.14), transparent 42%),
-    var(--bg);
+  background: radial-gradient(circle at 50% 40%, rgba(0, 227, 168, 0.12), transparent 40%), var(--bg);
 }
 
-.app-shell {
-  max-width: 760px;
+.app {
+  max-width: 520px;
   min-height: 100vh;
   margin: 0 auto;
   padding: 1rem 1rem 2rem;
 }
 
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.system-state {
+.header { text-align: center; }
+.tap-hint {
+  display: inline-block;
   margin: 0;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-size: 1rem;
-}
-
-.mic-btn {
-  width: 84px;
-  height: 84px;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid #1e7359;
   border-radius: 999px;
-  border: 2px solid var(--line);
-  background: rgba(0, 0, 0, 0.26);
-  color: var(--teal);
-  font-size: 2.2rem;
-  cursor: pointer;
+  font-size: 0.86rem;
+  color: var(--ok);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
 }
+h1 { margin: 0.7rem 0 0.2rem; font-size: 2.7rem; }
+.subtitle { margin: 0; color: var(--muted); }
 
-.hero {
-  text-align: center;
-  padding: 0.6rem 0 1rem;
-}
-
-h1 {
-  margin: 0.5rem 0 1rem;
-  font-size: clamp(2rem, 6vw, 3rem);
-}
-
-h1 span {
-  color: var(--muted);
-  font-weight: 400;
-}
-
-.shield {
-  margin: 0 auto 1.2rem;
-  width: min(72vw, 300px);
+.center-ring {
+  width: min(72vw, 290px);
   aspect-ratio: 1 / 1;
+  margin: 1.2rem auto;
   border-radius: 50%;
-  border: 1px solid var(--line);
-  background: radial-gradient(circle at 50% 30%, rgba(0, 229, 168, 0.12), rgba(6, 14, 24, 0.86));
+  border: 4px solid var(--ok);
+  background: rgba(0, 227, 168, 0.08);
   display: grid;
   place-items: center;
-  font-size: clamp(4rem, 10vw, 5rem);
+  text-align: center;
+  transition: box-shadow 0.2s ease;
 }
+.center-ring.active { box-shadow: 0 0 28px rgba(0, 227, 168, 0.45); }
+.center-ring.stopped { border-color: #2d3a55; background: rgba(35, 42, 58, 0.22); }
+.center-ring.danger { border-color: var(--danger); box-shadow: 0 0 28px rgba(255, 77, 103, 0.5); }
+.icon { font-size: 3.8rem; }
+.state-text { margin: 0.2rem 0 0; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 0.09em; }
 
-.activation-label {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--muted);
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
 }
-
-.activation-phrase {
-  margin: 0.35rem 0;
-  font-size: clamp(1.5rem, 4.8vw, 2.3rem);
-  font-style: italic;
-  font-weight: 700;
-}
-
-.activation-alt {
-  margin: 0;
-  color: #9fb0cf;
-  font-size: 1.1rem;
-}
-
-.status-card,
-.voice-help {
-  background: var(--card);
+.status-card {
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 1rem;
-  margin-top: 1rem;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 0.9rem;
 }
+.status-card .label { margin: 0; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85rem; }
+.status-card p:last-child { margin: 0.35rem 0 0; font-size: 1.2rem; font-weight: 700; }
 
-h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.35rem;
+.panel {
+  margin-top: 0.9rem;
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 14px;
+  padding: 1.1rem;
+  text-align: center;
 }
+#statusText { margin: 0; font-size: 1.45rem; font-weight: 700; }
+#permissionText { margin: 0.6rem 0 0; color: #ffd88e; }
+.panel-small { padding: 0.8rem 1rem; }
+.foot { margin: 0; color: var(--muted); }
 
-#statusText {
-  margin: 0 0 0.45rem;
-  font-size: 1.45rem;
-  font-weight: 800;
-}
-
-#locationText,
-#visionText,
-.voice-help li {
-  font-size: 1.1rem;
-  color: #dce6fb;
-}
-
-.voice-help ul {
-  margin: 0;
-  padding-left: 1.2rem;
-}
-
-.mic-btn:focus-visible {
-  outline: 4px solid #fff;
-  outline-offset: 2px;
-}
-
-.app-shell.active .system-state { color: #96ffd9; }
-.app-shell.active .shield { box-shadow: 0 0 0 7px rgba(0, 229, 168, 0.12); }
+.app:focus-visible { outline: 4px solid #fff; outline-offset: 3px; }
 
 .sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
-  padding: 0;
   margin: -1px;
+  padding: 0;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
-}
-
-#permissionText {
-  font-size: 1.08rem;
-  color: #ffe08a;
-  margin: 0.2rem 0;
 }
