@@ -1,14 +1,10 @@
 :root {
   --bg: #05070d;
-  --bg-soft: rgba(8, 14, 30, 0.78);
-  --card: rgba(10, 22, 42, 0.88);
+  --card: rgba(10, 22, 42, 0.9);
   --text: #f8fafc;
-  --muted: #a8b2cc;
+  --muted: #b7c3dd;
   --teal: #00e5a8;
-  --primary: #2f7dff;
-  --warning: #f7c948;
-  --danger: #f45b69;
-  --line: rgba(180, 198, 233, 0.26);
+  --line: rgba(180, 198, 233, 0.28);
 }
 
 * { box-sizing: border-box; }
@@ -25,13 +21,10 @@ body {
 }
 
 .app-shell {
-  max-width: 880px;
-  margin: 0 auto;
+  max-width: 760px;
   min-height: 100vh;
+  margin: 0 auto;
   padding: 1rem 1rem 2rem;
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18));
-  border-left: 1px solid rgba(255,255,255,0.06);
-  border-right: 1px solid rgba(255,255,255,0.06);
 }
 
 .topbar {
@@ -42,32 +35,31 @@ body {
 
 .system-state {
   margin: 0;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .mic-btn {
-  width: 72px;
-  height: 72px;
+  width: 84px;
+  height: 84px;
   border-radius: 999px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   background: rgba(0, 0, 0, 0.26);
   color: var(--teal);
-  font-size: 2rem;
+  font-size: 2.2rem;
   cursor: pointer;
 }
 
 .hero {
   text-align: center;
-  padding: 0.3rem 0 0.8rem;
+  padding: 0.6rem 0 1rem;
 }
 
 h1 {
-  font-size: clamp(2.2rem, 6vw, 3.2rem);
-  margin: 0.55rem 0 1rem;
-  font-weight: 700;
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(2rem, 6vw, 3rem);
 }
 
 h1 span {
@@ -76,40 +68,39 @@ h1 span {
 }
 
 .shield {
-  margin: 0 auto 1.4rem;
+  margin: 0 auto 1.2rem;
   width: min(72vw, 300px);
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  border: 1px solid rgba(179, 198, 235, 0.22);
-  background: radial-gradient(circle at 50% 30%, rgba(0, 229, 168, 0.12), rgba(6, 14, 24, 0.84));
+  border: 1px solid var(--line);
+  background: radial-gradient(circle at 50% 30%, rgba(0, 229, 168, 0.12), rgba(6, 14, 24, 0.86));
   display: grid;
   place-items: center;
-  font-size: clamp(4rem, 10vw, 5.2rem);
+  font-size: clamp(4rem, 10vw, 5rem);
 }
 
 .activation-label {
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   color: var(--muted);
 }
 
 .activation-phrase {
   margin: 0.35rem 0;
-  font-size: clamp(1.6rem, 4.8vw, 2.5rem);
+  font-size: clamp(1.5rem, 4.8vw, 2.3rem);
   font-style: italic;
   font-weight: 700;
 }
 
 .activation-alt {
   margin: 0;
-  color: #95a3be;
-  font-size: 1.2rem;
+  color: #9fb0cf;
+  font-size: 1.1rem;
 }
 
 .status-card,
-.controls,
-.help {
+.voice-help {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -118,64 +109,35 @@ h1 span {
 }
 
 h2 {
-  margin: 0 0 0.6rem;
-  font-size: 1.4rem;
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
 }
 
 #statusText {
-  font-size: 1.55rem;
+  margin: 0 0 0.45rem;
+  font-size: 1.45rem;
   font-weight: 800;
-  margin: 0 0 0.4rem;
 }
 
-#locationText, #visionText {
-  margin: 0.2rem 0;
-  font-size: 1.12rem;
-  color: #d7e1f5;
+#locationText,
+#visionText,
+.voice-help li {
+  font-size: 1.1rem;
+  color: #dce6fb;
 }
 
-.controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.7rem;
+.voice-help ul {
+  margin: 0;
+  padding-left: 1.2rem;
 }
 
-.btn {
-  min-height: 60px;
-  border-radius: 14px;
-  border: 2px solid #39517e;
-  background: #1a2a47;
-  color: var(--text);
-  font-size: 1.15rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.btn:focus-visible,
 .mic-btn:focus-visible {
-  outline: 4px solid #ffffff;
+  outline: 4px solid #fff;
   outline-offset: 2px;
 }
 
-.primary { background: var(--primary); }
-.warning { background: var(--warning); color: #1e293b; }
-.danger { background: var(--danger); }
-
-kbd {
-  font-size: 0.9rem;
-  background: #0b172c;
-  border: 1px solid #3e5682;
-  border-radius: 6px;
-  padding: 2px 6px;
-}
-
-.help ul {
-  margin: 0;
-  padding-left: 1rem;
-}
-
-.app-shell.active .system-state { color: #9affdb; }
-.app-shell.active .shield { box-shadow: 0 0 0 6px rgba(0, 229, 168, 0.12); }
+.app-shell.active .system-state { color: #96ffd9; }
+.app-shell.active .shield { box-shadow: 0 0 0 7px rgba(0, 229, 168, 0.12); }
 
 .sr-only {
   position: absolute;

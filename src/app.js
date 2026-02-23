@@ -18,40 +18,17 @@ class BlindNavigationApp {
     this.statusText = document.getElementById("statusText");
     this.locationText = document.getElementById("locationText");
     this.visionText = document.getElementById("visionText");
-    this.routeList = document.getElementById("routeList");
     this.liveRegion = document.getElementById("liveRegion");
     this.micBtn = document.getElementById("micBtn");
 
-    this.bindEvents();
-    this.renderRoute();
+    this.micBtn.addEventListener("click", () => this.toggleVoiceRecognition());
     this.setupVoiceRecognition();
     this.checkBackend();
     this.updateSystemState();
   }
 
-  bindEvents() {
-    document.getElementById("startBtn").addEventListener("click", () => this.startGuidance());
-    document.getElementById("nextBtn").addEventListener("click", () => this.nextStep());
-    document.getElementById("repeatBtn").addEventListener("click", () => this.repeatStep());
-    document.getElementById("obstacleBtn").addEventListener("click", () => this.simulateObstacle());
-    document.getElementById("scanBtn").addEventListener("click", () => this.scanScene());
-    document.getElementById("stopBtn").addEventListener("click", () => this.stopGuidance());
-    this.micBtn.addEventListener("click", () => this.toggleVoiceRecognition());
-
-    document.addEventListener("keydown", (event) => {
-      const key = event.key.toLowerCase();
-      if (key === "s") this.startGuidance();
-      if (key === "n") this.nextStep();
-      if (key === "r") this.repeatStep();
-      if (key === "o") this.simulateObstacle();
-      if (key === "v") this.scanScene();
-      if (key === "x") this.stopGuidance();
-    });
-  }
-
   updateSystemState() {
-    const status = this.active ? "Active" : "Inactive";
-    this.systemState.textContent = `● System Status: ${status}`;
+    this.systemState.textContent = `● System Status: ${this.active ? "Active" : "Inactive"}`;
     this.appShell.classList.toggle("active", this.active);
   }
 
@@ -66,25 +43,8 @@ class BlindNavigationApp {
     }
   }
 
-  renderRoute() {
-    const list = document.getElementById("routeList");
-    if (!list) return;
-
-    list.innerHTML = "";
-    route.forEach((step, idx) => {
-      const item = document.createElement("li");
-      item.textContent = `${step.name}: ${step.instruction}`;
-      if (idx === this.index) item.classList.add("current");
-      list.appendChild(item);
-    });
-  }
-
   startGuidance() {
-    if (this.active) {
-      this.announce("Guidance is already active.");
-      return;
-    }
-
+    if (this.active) return this.announce("Guidance is already active.");
     this.active = true;
     this.index = 0;
     this.updateSystemState();
@@ -92,78 +52,44 @@ class BlindNavigationApp {
   }
 
   nextStep() {
-    if (!this.active) {
-      this.announce("Guidance is not active. Press start first.");
-      return;
-    }
-
+    if (!this.active) return this.announce("Guidance is not active. Say assistant start navigation.");
     if (this.index < route.length - 1) {
       this.index += 1;
-      this.updateForCurrentStep("Proceeding to the next waypoint.");
-      return;
+      return this.updateForCurrentStep("Proceeding to the next waypoint.");
     }
-
     this.announce("You are already at the destination.");
   }
 
   repeatStep() {
-    if (!this.active || this.index < 0) {
-      this.announce("No active step to repeat.");
-      return;
-    }
-
-    const step = route[this.index];
-    this.announce(`Repeating current step. ${step.instruction}`);
-  }
-
-  simulateObstacle() {
-    if (!this.active) {
-      this.announce("Start guidance before simulating obstacles.");
-      return;
-    }
-
-    const message = "Obstacle detected ahead. Stop. Shift one meter left, then continue forward cautiously.";
-    this.announce(message);
-    this.statusText.textContent = message;
+    if (!this.active || this.index < 0) return this.announce("No active step to repeat.");
+    this.announce(`Repeating current step. ${route[this.index].instruction}`);
   }
 
   async scanScene() {
     this.visionText.textContent = "Vision: scanning scene with Python YOLO service...";
-
     try {
       const response = await fetch("/api/detect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ guidance_mode: this.active })
       });
-
       if (!response.ok) throw new Error("Detection failed");
-
       const data = await response.json();
-      const detected = data.detections.length
-        ? data.detections.map((d) => `${d.label} (${Math.round(d.confidence * 100)}%)`).join(", ")
-        : "none";
-
-      this.visionText.textContent = `Vision [${data.engine}]: ${data.summary} Objects: ${detected}.`;
+      this.visionText.textContent = `Vision [${data.engine}]: ${data.summary}`;
       this.announce(data.alert);
     } catch {
       this.visionText.textContent = "Vision scan failed. Ensure Python backend is running (`python server.py`).";
-      this.announce("Vision scan failed. Continue with manual navigation controls.");
+      this.announce("Vision scan failed. Continue cautiously.");
     }
   }
 
   stopGuidance() {
-    if (!this.active) {
-      this.announce("Guidance is already stopped.");
-      return;
-    }
-
+    if (!this.active) return this.announce("Guidance is already stopped.");
     this.active = false;
     this.index = -1;
     this.updateSystemState();
-    this.statusText.textContent = "Guidance stopped. Press Start Guidance when ready.";
+    this.statusText.textContent = "Guidance stopped. Say start command when ready.";
     this.locationText.textContent = "Location: Navigation paused";
-    this.renderRoute();
     this.speak("Guidance stopped.");
   }
 
@@ -172,7 +98,6 @@ class BlindNavigationApp {
     const combined = `${prefix} ${step.instruction}`;
     this.statusText.textContent = combined;
     this.locationText.textContent = `Location: ${step.name} (${this.index + 1} of ${route.length})`;
-    this.renderRoute();
     this.announce(combined);
   }
 
@@ -186,7 +111,6 @@ class BlindNavigationApp {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 1;
-    utterance.pitch = 1;
     window.speechSynthesis.speak(utterance);
   }
 
@@ -194,8 +118,8 @@ class BlindNavigationApp {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       this.micBtn.disabled = true;
-      this.micBtn.setAttribute("aria-label", "Voice command unsupported");
       this.micBtn.textContent = "🚫";
+      this.micBtn.setAttribute("aria-label", "Voice command unsupported");
       return;
     }
 
@@ -214,13 +138,12 @@ class BlindNavigationApp {
     };
 
     this.recognition.onerror = () => {
-      this.announce("Voice recognition error. You can continue with buttons and keyboard.");
+      this.announce("Voice recognition error. Please try again.");
     };
   }
 
   toggleVoiceRecognition() {
     if (!this.recognition) return;
-
     this.listening = !this.listening;
     this.micBtn.textContent = this.listening ? "🟢" : "🎙️";
     this.micBtn.setAttribute("aria-label", `Voice command ${this.listening ? "on" : "off"}`);
@@ -235,23 +158,17 @@ class BlindNavigationApp {
   }
 
   handleCommand(command) {
-    if (command.includes("start")) return this.startGuidance();
+    if (command.includes("assistant start navigation") || command.includes("start")) return this.startGuidance();
     if (command.includes("next")) return this.nextStep();
     if (command.includes("repeat")) return this.repeatStep();
-    if (command.includes("scan") || command.includes("vision")) return this.scanScene();
+    if (command.includes("scan")) return this.scanScene();
     if (command.includes("stop")) return this.stopGuidance();
-    if (command.includes("where am i") || command.includes("location")) {
-      return this.announce(this.locationText.textContent);
-    }
-
+    if (command.includes("where am i") || command.includes("location")) return this.announce(this.locationText.textContent);
     if (command.includes("help")) {
-      return this.announce("Available commands: start, next, repeat, scan, where am I, stop, and help.");
+      return this.announce("Say: assistant start navigation, next, repeat, scan scene, where am I, stop.");
     }
-
     this.announce(`Unknown command: ${command}`);
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  new BlindNavigationApp();
-});
+window.addEventListener("DOMContentLoaded", () => new BlindNavigationApp());
