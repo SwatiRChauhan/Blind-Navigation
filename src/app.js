@@ -14,6 +14,8 @@ class VisionCompanionApp {
     this.lastAutoSummary = "";
     this.lastHazardLevel = 0;
     this.lastCriticalCondition = "";
+    this.speakingPriority = null;
+    this.pendingNormalAnnouncement = "";
 
     this.centerRing = document.getElementById("centerRing");
     this.centerIcon = document.getElementById("centerIcon");
@@ -50,12 +52,29 @@ class VisionCompanionApp {
       setTimeout(() => this.centerRing.classList.remove("danger"), 1800);
     }
 
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1;
-      window.speechSynthesis.speak(utterance);
+    if (!window.speechSynthesis) return;
+
+    if (priority === "normal" && this.speakingPriority === "danger") {
+      this.pendingNormalAnnouncement = text;
+      return;
     }
+
+    if (priority === "danger") {
+      window.speechSynthesis.cancel();
+    }
+
+    this.speakingPriority = priority;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.onend = () => {
+      const queued = this.pendingNormalAnnouncement;
+      this.pendingNormalAnnouncement = "";
+      this.speakingPriority = null;
+      if (queued) {
+        this.announce(queued, "normal");
+      }
+    };
+    window.speechSynthesis.speak(utterance);
   }
 
   updateUi() {
@@ -167,15 +186,10 @@ class VisionCompanionApp {
   }
 
   speakContextHelp() {
-    if (!this.active) {
-      return this.announce(
-        "Available commands: Start navigation, Help, and What can you do. After starting, you can ask what is ahead, describe surroundings, repeat, and stop navigation."
-      );
-    }
+    const helpText =
+      "Available voice commands: Start navigation, Stop navigation, What is ahead, Describe surroundings, Help, and Repeat.";
 
-    return this.announce(
-      "Navigation is active. Say what is ahead or describe surroundings for scene details. Say repeat to hear last instruction. Say stop navigation to stop immediately."
-    );
+    return this.announce(helpText, "normal");
   }
 
   startNavigation() {
@@ -184,6 +198,8 @@ class VisionCompanionApp {
     this.lastHazardLevel = 0;
     this.lastAutoSummary = "";
     this.lastCriticalCondition = "";
+    this.speakingPriority = null;
+    this.pendingNormalAnnouncement = "";
     this.updateUi();
     this.startGpsWatch();
     this.startVisionLoop();

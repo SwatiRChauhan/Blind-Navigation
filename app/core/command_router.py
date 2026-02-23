@@ -31,6 +31,8 @@ class CommandRouter:
             return "PAUSE_ALERTS"
         if "resume" in text and "alert" in text:
             return "RESUME_ALERTS"
+        if "help" in text or "what can you do" in text:
+            return "HELP"
         if "repeat" in text:
             return "REPEAT"
         return "UNKNOWN"

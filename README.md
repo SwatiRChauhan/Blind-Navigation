@@ -11,7 +11,7 @@ Audio-first navigation assistant for blind users with **offline local processing
 ## Voice-only control
 - Say **"Start navigation"** to activate continuous assistance.
 - Say **"Stop navigation"** to stop immediately.
-- Optional commands while active: "What is ahead", "Describe surroundings", "Repeat".
+- Optional commands: "What is ahead", "Describe surroundings", "Help", "Repeat".
 
 ## Run locally
 ```bash
