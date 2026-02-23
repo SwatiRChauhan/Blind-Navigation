@@ -10,6 +10,11 @@ class VisionCompanionApp {
     this.currentCoords = null;
     this.permissionState = { micCam: false, gps: false };
 
+    // Controlled feedback state
+    this.lastAutoSummary = "";
+    this.lastHazardLevel = 0;
+    this.lastCriticalCondition = "";
+
     this.centerRing = document.getElementById("centerRing");
     this.centerIcon = document.getElementById("centerIcon");
     this.centerState = document.getElementById("centerState");
@@ -58,7 +63,7 @@ class VisionCompanionApp {
     this.centerRing.classList.toggle("stopped", !this.active);
     this.centerIcon.textContent = this.active ? "🟢" : "🎙️";
     this.centerState.textContent = this.active ? "Active" : "Stopped";
-    this.visionState.textContent = this.active ? "On" : "Off";
+    this.visionState.textContent = this.active ? this.visionState.textContent : "Off";
   }
 
   async acquirePermissions() {
@@ -105,16 +110,6 @@ class VisionCompanionApp {
     this.recognition.start();
   }
 
-  stopVoiceInput() {
-    if (!this.recognition || !this.listening) return;
-    this.listening = false;
-    try {
-      this.recognition.stop();
-    } catch {
-      // no-op
-    }
-  }
-
   setupSpeechRecognition() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
@@ -156,12 +151,14 @@ class VisionCompanionApp {
       return this.stopNavigation();
     }
 
-    if (!this.active) {
-      return;
+    if (command.includes("help") || command.includes("what can you do")) {
+      return this.speakContextHelp();
     }
 
-    if (command.includes("what is ahead") || command.includes("describe surroundings")) {
-      return this.runImmediateVision();
+    if (!this.active) return;
+
+    if (command.includes("what is ahead") || command.includes("describe surroundings") || command.includes("describe scene")) {
+      return this.runImmediateVision(true);
     }
 
     if (command.includes("repeat")) {
@@ -169,9 +166,24 @@ class VisionCompanionApp {
     }
   }
 
+  speakContextHelp() {
+    if (!this.active) {
+      return this.announce(
+        "Available commands: Start navigation, Help, and What can you do. After starting, you can ask what is ahead, describe surroundings, repeat, and stop navigation."
+      );
+    }
+
+    return this.announce(
+      "Navigation is active. Say what is ahead or describe surroundings for scene details. Say repeat to hear last instruction. Say stop navigation to stop immediately."
+    );
+  }
+
   startNavigation() {
     if (this.active) return;
     this.active = true;
+    this.lastHazardLevel = 0;
+    this.lastAutoSummary = "";
+    this.lastCriticalCondition = "";
     this.updateUi();
     this.startGpsWatch();
     this.startVisionLoop();
@@ -211,7 +223,7 @@ class VisionCompanionApp {
 
   startVisionLoop() {
     if (this.frameTimer) return;
-    this.frameTimer = setInterval(() => this.analyzeFrame(), 1000);
+    this.frameTimer = setInterval(() => this.analyzeFrame(false), 1000);
   }
 
   stopVisionLoop() {
@@ -222,11 +234,31 @@ class VisionCompanionApp {
     this.visionState.textContent = "Off";
   }
 
-  async runImmediateVision() {
-    await this.analyzeFrame();
+  async runImmediateVision(userRequested = false) {
+    await this.analyzeFrame(userRequested);
   }
 
-  async analyzeFrame() {
+  assessSystemConditions(detections) {
+    if (!this.mediaStream || !this.video.srcObject) {
+      return "camera blocked";
+    }
+
+    if (!detections.length) {
+      return "low visibility";
+    }
+
+    return "ok";
+  }
+
+  hazardLevelFromDescription(text) {
+    const lower = text.toLowerCase();
+    if (lower.includes("vehicle") || lower.includes("dropoff") || lower.includes("very close") || lower.includes("stairs down")) return 3;
+    if (lower.includes("near") || lower.includes("obstacle")) return 2;
+    if (lower.includes("person") || lower.includes("medium")) return 1;
+    return 0;
+  }
+
+  async analyzeFrame(userRequested = false) {
     if (!this.active) return;
 
     try {
@@ -239,12 +271,48 @@ class VisionCompanionApp {
       if (!response.ok) throw new Error("detect failed");
 
       const data = await response.json();
+      const detections = data.detections || [];
       this.visionState.textContent = data.engine || "On";
-      const description = this.composeEnvironmentalDescription(data.detections || []);
-      this.processSafetySummary(description || data.alert || "Unclear environment. Move slowly.");
+
+      const condition = this.assessSystemConditions(detections);
+      if (condition !== "ok") {
+        if (condition !== this.lastCriticalCondition) {
+          this.lastCriticalCondition = condition;
+          const msg = condition === "camera blocked" ? "Camera blocked. Stop and reposition phone." : "Low visibility. Move slowly.";
+          this.announce(msg, "danger");
+        }
+        return;
+      }
+      this.lastCriticalCondition = "";
+
+      const description = this.composeEnvironmentalDescription(detections);
+      const hazardLevel = this.hazardLevelFromDescription(description);
+
+      if (userRequested) {
+        this.lastHazardLevel = hazardLevel;
+        this.lastAutoSummary = description;
+        this.processSafetySummary(description);
+        return;
+      }
+
+      // Controlled feedback: announce only when danger is new/increasing.
+      if (hazardLevel > this.lastHazardLevel) {
+        this.lastHazardLevel = hazardLevel;
+        this.lastAutoSummary = description;
+        this.processSafetySummary(description);
+        return;
+      }
+
+      // If unchanged or lower risk, do not repeat routine info.
+      if (hazardLevel < this.lastHazardLevel) {
+        this.lastHazardLevel = hazardLevel;
+      }
     } catch {
       this.visionState.textContent = "Error";
-      this.processSafetySummary("Unclear environment. Move slowly.");
+      if (this.lastCriticalCondition !== "vision-failure") {
+        this.lastCriticalCondition = "vision-failure";
+        this.processSafetySummary("Unclear environment. Move slowly.");
+      }
     }
   }
 
