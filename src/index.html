@@ -3,42 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Blind Navigation - Phase 1</title>
+    <title>AEGIS Blind Navigation</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app" aria-labelledby="app-title">
-      <header>
-        <h1 id="app-title">Blind Navigation Assistant</h1>
-        <p class="subtitle">Audio-first route guidance with accessible controls.</p>
+    <main class="app-shell" aria-labelledby="app-title">
+      <header class="topbar">
+        <p id="systemState" class="system-state" role="status" aria-live="polite">● System Status: Inactive</p>
+        <button id="micBtn" class="mic-btn" aria-label="Toggle voice command">🎙️</button>
       </header>
 
-      <section class="panel controls" aria-label="Controls">
-        <button id="startBtn" class="btn primary">Start Guidance</button>
-        <button id="nextBtn" class="btn">Next Step</button>
-        <button id="repeatBtn" class="btn">Repeat Step</button>
-        <button id="obstacleBtn" class="btn warning">Simulate Obstacle</button>
-        <button id="scanBtn" class="btn">Scan Scene (YOLO)</button>
-        <button id="stopBtn" class="btn danger">Stop Guidance</button>
-        <button id="micBtn" class="btn">Voice Command: Off</button>
+      <section class="hero" aria-label="App heading and activation hint">
+        <h1 id="app-title">AEGIS <span>v1.0</span></h1>
+        <div class="shield" aria-hidden="true">🛡️</div>
+        <p class="activation-label">Awaiting activation phrase</p>
+        <p class="activation-phrase">“Assistant start navigation”</p>
+        <p class="activation-alt">or “Start guidance”</p>
       </section>
 
-      <section class="panel" aria-label="Status">
-        <h2>Current Status</h2>
-        <p id="statusText">Ready. Press Start Guidance.</p>
+      <section class="status-card" aria-label="Current system information">
+        <h2>Live Safety Status</h2>
+        <p id="statusText">Ready. Voice or press Start Guidance.</p>
         <p id="locationText">Location: Not started</p>
         <p id="visionText">Vision: Not scanned yet</p>
       </section>
 
-      <section class="panel" aria-label="Route details">
-        <h2>Route Steps</h2>
-        <ol id="routeList"></ol>
+      <section class="controls" aria-label="Accessible controls">
+        <button id="startBtn" class="btn primary">Start Guidance</button>
+        <button id="nextBtn" class="btn">Next Step</button>
+        <button id="repeatBtn" class="btn">Repeat Step</button>
+        <button id="scanBtn" class="btn">Scan Scene</button>
+        <button id="obstacleBtn" class="btn warning">Simulate Obstacle</button>
+        <button id="stopBtn" class="btn danger">Stop Guidance</button>
       </section>
 
-      <section class="panel" aria-label="Keyboard and voice command help">
+      <section class="help" aria-label="Command reference">
         <h2>Commands</h2>
         <ul>
-          <li><strong>Keyboard</strong>: <kbd>S</kbd> Start, <kbd>N</kbd> Next, <kbd>R</kbd> Repeat, <kbd>O</kbd> Obstacle, <kbd>V</kbd> Scan, <kbd>X</kbd> Stop</li>
+          <li><strong>Keyboard</strong>: <kbd>S</kbd> Start, <kbd>N</kbd> Next, <kbd>R</kbd> Repeat, <kbd>V</kbd> Scan, <kbd>O</kbd> Obstacle, <kbd>X</kbd> Stop</li>
           <li><strong>Voice</strong>: “start”, “next”, “repeat”, “scan”, “where am I”, “stop”, “help”</li>
         </ul>
       </section>

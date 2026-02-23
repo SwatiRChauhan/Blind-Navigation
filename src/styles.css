@@ -1,90 +1,181 @@
 :root {
-  --bg: #0b1220;
-  --panel: #121c31;
+  --bg: #05070d;
+  --bg-soft: rgba(8, 14, 30, 0.78);
+  --card: rgba(10, 22, 42, 0.88);
   --text: #f8fafc;
-  --muted: #b5c3de;
-  --accent: #3b82f6;
-  --warning: #f59e0b;
-  --danger: #ef4444;
+  --muted: #a8b2cc;
+  --teal: #00e5a8;
+  --primary: #2f7dff;
+  --warning: #f7c948;
+  --danger: #f45b69;
+  --line: rgba(180, 198, 233, 0.26);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: var(--bg);
+  min-height: 100vh;
+  font-family: Inter, Arial, Helvetica, sans-serif;
   color: var(--text);
-  line-height: 1.5;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(0, 229, 168, 0.12), transparent 35%),
+    radial-gradient(circle at 25% 65%, rgba(47, 125, 255, 0.14), transparent 42%),
+    var(--bg);
 }
 
-.app {
-  max-width: 900px;
+.app-shell {
+  max-width: 880px;
   margin: 0 auto;
-  padding: 1.25rem;
+  min-height: 100vh;
+  padding: 1rem 1rem 2rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18));
+  border-left: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.06);
 }
 
-h1,
-h2 {
-  margin-top: 0;
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.subtitle {
+.system-state {
+  margin: 0;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
   color: var(--muted);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
 }
 
-.panel {
-  background: var(--panel);
-  border: 2px solid #1f2a45;
-  border-radius: 12px;
+.mic-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.26);
+  color: var(--teal);
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.hero {
+  text-align: center;
+  padding: 0.3rem 0 0.8rem;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+  margin: 0.55rem 0 1rem;
+  font-weight: 700;
+}
+
+h1 span {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.shield {
+  margin: 0 auto 1.4rem;
+  width: min(72vw, 300px);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 1px solid rgba(179, 198, 235, 0.22);
+  background: radial-gradient(circle at 50% 30%, rgba(0, 229, 168, 0.12), rgba(6, 14, 24, 0.84));
+  display: grid;
+  place-items: center;
+  font-size: clamp(4rem, 10vw, 5.2rem);
+}
+
+.activation-label {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+.activation-phrase {
+  margin: 0.35rem 0;
+  font-size: clamp(1.6rem, 4.8vw, 2.5rem);
+  font-style: italic;
+  font-weight: 700;
+}
+
+.activation-alt {
+  margin: 0;
+  color: #95a3be;
+  font-size: 1.2rem;
+}
+
+.status-card,
+.controls,
+.help {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
   padding: 1rem;
-  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.4rem;
+}
+
+#statusText {
+  font-size: 1.55rem;
+  font-weight: 800;
+  margin: 0 0 0.4rem;
+}
+
+#locationText, #visionText {
+  margin: 0.2rem 0;
+  font-size: 1.12rem;
+  color: #d7e1f5;
 }
 
 .controls {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.75rem;
+  gap: 0.7rem;
 }
 
 .btn {
-  border: 2px solid #3b4f79;
-  background: #1d2b4b;
+  min-height: 60px;
+  border-radius: 14px;
+  border: 2px solid #39517e;
+  background: #1a2a47;
   color: var(--text);
-  font-size: 1.1rem;
-  font-weight: 700;
-  padding: 0.75rem;
-  border-radius: 10px;
+  font-size: 1.15rem;
+  font-weight: 800;
   cursor: pointer;
 }
 
-.btn:hover,
-.btn:focus-visible {
-  outline: 3px solid #dbeafe;
-  outline-offset: 1px;
+.btn:focus-visible,
+.mic-btn:focus-visible {
+  outline: 4px solid #ffffff;
+  outline-offset: 2px;
 }
 
-.primary { background: var(--accent); }
-.warning { background: var(--warning); color: #111827; }
+.primary { background: var(--primary); }
+.warning { background: var(--warning); color: #1e293b; }
 .danger { background: var(--danger); }
 
-#statusText {
-  font-size: 1.3rem;
-  font-weight: 700;
+kbd {
+  font-size: 0.9rem;
+  background: #0b172c;
+  border: 1px solid #3e5682;
+  border-radius: 6px;
+  padding: 2px 6px;
 }
 
-#routeList {
+.help ul {
   margin: 0;
-  padding-left: 1.2rem;
+  padding-left: 1rem;
 }
 
-#routeList li.current {
-  color: #93c5fd;
-  font-weight: 700;
-}
+.app-shell.active .system-state { color: #9affdb; }
+.app-shell.active .shield { box-shadow: 0 0 0 6px rgba(0, 229, 168, 0.12); }
 
 .sr-only {
   position: absolute;
@@ -95,9 +186,4 @@ h2 {
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
-}
-
-#visionText {
-  font-size: 1rem;
-  color: #c7d2fe;
 }

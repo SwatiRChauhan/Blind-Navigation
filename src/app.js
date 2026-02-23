@@ -13,6 +13,8 @@ class BlindNavigationApp {
     this.recognition = null;
     this.listening = false;
 
+    this.appShell = document.querySelector(".app-shell");
+    this.systemState = document.getElementById("systemState");
     this.statusText = document.getElementById("statusText");
     this.locationText = document.getElementById("locationText");
     this.visionText = document.getElementById("visionText");
@@ -24,6 +26,7 @@ class BlindNavigationApp {
     this.renderRoute();
     this.setupVoiceRecognition();
     this.checkBackend();
+    this.updateSystemState();
   }
 
   bindEvents() {
@@ -46,6 +49,12 @@ class BlindNavigationApp {
     });
   }
 
+  updateSystemState() {
+    const status = this.active ? "Active" : "Inactive";
+    this.systemState.textContent = `● System Status: ${status}`;
+    this.appShell.classList.toggle("active", this.active);
+  }
+
   async checkBackend() {
     try {
       const response = await fetch("/health");
@@ -58,13 +67,15 @@ class BlindNavigationApp {
   }
 
   renderRoute() {
-    this.routeList.innerHTML = "";
+    const list = document.getElementById("routeList");
+    if (!list) return;
 
+    list.innerHTML = "";
     route.forEach((step, idx) => {
       const item = document.createElement("li");
       item.textContent = `${step.name}: ${step.instruction}`;
       if (idx === this.index) item.classList.add("current");
-      this.routeList.appendChild(item);
+      list.appendChild(item);
     });
   }
 
@@ -76,6 +87,7 @@ class BlindNavigationApp {
 
     this.active = true;
     this.index = 0;
+    this.updateSystemState();
     this.updateForCurrentStep("Guidance started.");
   }
 
@@ -110,8 +122,7 @@ class BlindNavigationApp {
       return;
     }
 
-    const message =
-      "Obstacle detected ahead. Stop. Shift one meter left, then continue forward cautiously.";
+    const message = "Obstacle detected ahead. Stop. Shift one meter left, then continue forward cautiously.";
     this.announce(message);
     this.statusText.textContent = message;
   }
@@ -126,9 +137,7 @@ class BlindNavigationApp {
         body: JSON.stringify({ guidance_mode: this.active })
       });
 
-      if (!response.ok) {
-        throw new Error("Detection failed");
-      }
+      if (!response.ok) throw new Error("Detection failed");
 
       const data = await response.json();
       const detected = data.detections.length
@@ -151,6 +160,7 @@ class BlindNavigationApp {
 
     this.active = false;
     this.index = -1;
+    this.updateSystemState();
     this.statusText.textContent = "Guidance stopped. Press Start Guidance when ready.";
     this.locationText.textContent = "Location: Navigation paused";
     this.renderRoute();
@@ -184,7 +194,8 @@ class BlindNavigationApp {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       this.micBtn.disabled = true;
-      this.micBtn.textContent = "Voice Command: Unsupported";
+      this.micBtn.setAttribute("aria-label", "Voice command unsupported");
+      this.micBtn.textContent = "🚫";
       return;
     }
 
@@ -211,7 +222,8 @@ class BlindNavigationApp {
     if (!this.recognition) return;
 
     this.listening = !this.listening;
-    this.micBtn.textContent = `Voice Command: ${this.listening ? "On" : "Off"}`;
+    this.micBtn.textContent = this.listening ? "🟢" : "🎙️";
+    this.micBtn.setAttribute("aria-label", `Voice command ${this.listening ? "on" : "off"}`);
 
     if (this.listening) {
       this.recognition.start();
@@ -233,9 +245,7 @@ class BlindNavigationApp {
     }
 
     if (command.includes("help")) {
-      return this.announce(
-        "Available commands: start, next, repeat, scan, where am I, stop, and help."
-      );
+      return this.announce("Available commands: start, next, repeat, scan, where am I, stop, and help.");
     }
 
     this.announce(`Unknown command: ${command}`);
