@@ -9,9 +9,10 @@ Audio-first navigation assistant for blind users with **offline local processing
 - Alerts follow strict priority: danger > guidance > awareness.
 
 ## Voice-only control
-- Say **"Start navigation"** to activate continuous assistance.
-- Say **"Stop navigation"** to stop immediately.
+- Say **"Start safe navigation"** to activate continuous assistance.
+- Say **"Stop safe navigation"** to stop immediately.
 - Optional commands: "What is ahead", "Describe surroundings", "Help", "Repeat".
+- Stop command is strict: only **"Stop safe navigation"** deactivates assistance.
 
 ## Run locally
 ```bash

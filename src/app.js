@@ -9,6 +9,8 @@ class VisionCompanionApp {
     this.lastInstruction = "";
     this.currentCoords = null;
     this.permissionState = { micCam: false, gps: false };
+    this.startPhrase = "start safe navigation";
+    this.stopPhrase = "stop safe navigation";
 
     // Controlled feedback state
     this.lastAutoSummary = "";
@@ -39,7 +41,7 @@ class VisionCompanionApp {
     }
 
     this.startVoiceInput();
-    this.announce("Voice control ready. Say start navigation.");
+    this.announce("Voice control ready. Say start safe navigation.");
   }
 
   announce(text, priority = "normal") {
@@ -161,33 +163,52 @@ class VisionCompanionApp {
     };
   }
 
+  normalizeCommand(command) {
+    return command
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  matchesPhrase(command, phrase) {
+    if (command === phrase) return true;
+    return command.startsWith(`${phrase} `) || command.endsWith(` ${phrase}`) || command.includes(` ${phrase} `);
+  }
+
   handleCommand(command) {
-    if (command.includes("start navigation")) {
+    const normalized = this.normalizeCommand(command);
+
+    if (this.matchesPhrase(normalized, this.startPhrase)) {
       return this.startNavigation();
     }
 
-    if (command.includes("stop navigation") || command === "stop") {
+    if (this.matchesPhrase(normalized, this.stopPhrase)) {
       return this.stopNavigation();
     }
 
-    if (command.includes("help") || command.includes("what can you do")) {
+    if (normalized.includes("help") || normalized.includes("what can you do")) {
       return this.speakContextHelp();
     }
 
     if (!this.active) return;
 
-    if (command.includes("what is ahead") || command.includes("describe surroundings") || command.includes("describe scene")) {
+    if (
+      normalized.includes("what is ahead") ||
+      normalized.includes("describe surroundings") ||
+      normalized.includes("describe scene")
+    ) {
       return this.runImmediateVision(true);
     }
 
-    if (command.includes("repeat")) {
+    if (normalized.includes("repeat")) {
       return this.announce(this.lastInstruction || "No instruction available.");
     }
   }
 
   speakContextHelp() {
     const helpText =
-      "Available voice commands: Start navigation, Stop navigation, What is ahead, Describe surroundings, Help, and Repeat.";
+      "Available voice commands: Start safe navigation, Stop safe navigation, What is ahead, Describe surroundings, Help, and Repeat.";
 
     return this.announce(helpText, "normal");
   }
@@ -203,7 +224,7 @@ class VisionCompanionApp {
     this.updateUi();
     this.startGpsWatch();
     this.startVisionLoop();
-    this.announce("Navigation started.");
+    this.announce("Safe navigation started.");
   }
 
   stopNavigation() {
@@ -212,7 +233,7 @@ class VisionCompanionApp {
     this.updateUi();
     this.stopVisionLoop();
     this.stopGpsWatch();
-    this.announce("Navigation stopped.");
+    this.announce("Safe navigation stopped.");
   }
 
   startGpsWatch() {

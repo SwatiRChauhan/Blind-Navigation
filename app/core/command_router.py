@@ -5,8 +5,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class CommandConfig:
-    start_phrase: str = "assistant start navigation"
-    stop_phrase: str = "assistant stop"
+    start_phrase: str = "assistant start safe navigation"
+    stop_phrase: str = "assistant stop safe navigation"
 
 
 class CommandRouter:
@@ -17,7 +17,7 @@ class CommandRouter:
         text = " ".join(raw_text.lower().strip().split())
         if text == self.config.start_phrase:
             return "START"
-        if text in {self.config.stop_phrase, "stop assistant", "stop"}:
+        if text == self.config.stop_phrase:
             return "STOP"
         if "what" in text and "ahead" in text:
             return "WHAT_AHEAD"
