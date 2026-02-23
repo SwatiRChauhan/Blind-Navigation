@@ -1,32 +1,22 @@
-# Blind Navigation App (Phase 1, Python + YOLO)
+# AEGIS Offline Blind Safety Navigation (Python)
 
-A lightweight accessible navigation prototype with a **Python backend** and **YOLO-based obstacle detection**.
+This repository now includes a **safety-critical Python core** for an offline, audio-first navigation assistant for blind users.
 
-## Features
-- Predefined route guidance with waypoint progression.
-- Voice announcements via browser speech synthesis.
-- Optional voice commands where speech recognition is available.
-- Keyboard-first controls for non-mouse interaction.
-- YOLO obstacle scan endpoint (`/api/detect`) with fallback simulation.
+## Safety constraints enforced
+- Offline-first processing only.
+- Person detection is **presence-only** (no identity/face analysis).
+- Face/identity labels are explicitly rejected by the filter layer.
+- Alert output follows priority: immediate danger > guidance > awareness > on-demand.
 
-## Run locally
+## Implemented Python modules
+- `app/core/command_router.py` — voice command normalization and routing.
+- `app/core/safety_watchdog.py` — camera/low-light/angle/confidence fail-safe messages.
+- `app/vision/label_filter.py` — allowed-class filter + forbidden labels.
+- `app/vision/spatial_reasoner.py` — left/center/right and conservative proximity cues.
+- `app/audio/priority_manager.py` — interrupt policy manager.
+- `app/services/safety_engine.py` — end-to-end detection-to-alert policy.
 
+## Run tests
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-python server.py
+python -m pytest tests -q
 ```
-
-Open `http://localhost:4173`.
-
-## Notes on YOLO
-- If `ultralytics` is available, the backend initializes `YOLO("yolov8n.pt")`.
-- If the model/runtime is unavailable, the backend gracefully falls back to simulated detections so the app still works.
-
-## Keyboard shortcuts
-- `S` Start guidance
-- `N` Next step
-- `R` Repeat step
-- `O` Simulate obstacle
-- `V` Scan scene (YOLO API)
-- `X` Stop guidance
