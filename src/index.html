@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Vision Companion</title>
+    <title>Vision Companion Offline</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main id="app" class="app" aria-live="polite">
       <header class="header">
-        <p id="tapHint" class="tap-hint">● Tap anywhere to start</p>
+        <p id="voiceHint" class="tap-hint">● Voice control only</p>
         <h1>Vision Companion</h1>
-        <p class="subtitle">Audio-first blind navigation assistant</p>
+        <p class="subtitle">Say “Start navigation” or “Stop navigation”</p>
       </header>
 
       <section id="centerRing" class="center-ring stopped" aria-label="Assistant status">
@@ -31,12 +31,12 @@
       </section>
 
       <section class="panel">
-        <p id="statusText">Tap anywhere to start navigation</p>
-        <p id="permissionText">Permissions: microphone, camera, location not granted</p>
+        <p id="statusText">Initializing offline voice system...</p>
+        <p id="permissionText">Permissions: waiting for microphone/camera/location</p>
       </section>
 
       <section class="panel panel-small">
-        <p class="foot">Voice: “start navigation”, “stop”, “what is ahead”, “describe surroundings”</p>
+        <p class="foot">Commands: “Start navigation”, “Stop navigation”, “What is ahead”, “Describe surroundings”, “Repeat”</p>
       </section>
 
       <video id="cameraPreview" class="sr-only" autoplay playsinline muted></video>
