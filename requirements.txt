@@ -1,3 +1,5 @@
+kivy>=2.2.0
+plyer>=2.1.0
 pytest>=8.0.0
 # Optional for real model inference; app falls back to simulated detections if unavailable.
 ultralytics>=8.0.0
