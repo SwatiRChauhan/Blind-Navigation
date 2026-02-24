@@ -2,11 +2,11 @@
 
 <VisionRoot>:
     orientation: "vertical"
-    padding: dp(14)
-    spacing: dp(10)
+    padding: dp(16)
+    spacing: dp(12)
     canvas.before:
         Color:
-            rgba: 0.05, 0.06, 0.10, 1
+            rgba: 0.03, 0.04, 0.08, 1
         Rectangle:
             pos: self.pos
             size: self.size
@@ -14,112 +14,127 @@
     Label:
         text: "Vision Companion"
         size_hint_y: None
-        height: dp(48)
-        font_size: "28sp"
+        height: dp(52)
+        font_size: "40sp"
         bold: True
-        color: 0.76, 0.93, 1, 1
+        color: 1, 1, 1, 1
 
     Label:
-        text: "100% voice-controlled offline navigation"
+        text: "Audio-first blind navigation assistant"
         size_hint_y: None
-        height: dp(32)
+        height: dp(24)
         font_size: "16sp"
-        color: 0.80, 0.87, 0.96, 1
+        color: 0.72, 0.82, 0.96, 1
+
+    AnchorLayout:
+        anchor_x: "center"
+        anchor_y: "center"
+
+        BoxLayout:
+            orientation: "vertical"
+            size_hint: None, None
+            size: dp(280), dp(280)
+            padding: dp(20)
+            canvas.before:
+                Color:
+                    rgba: (0.00, 0.30, 0.25, 0.35) if root.active else (0.00, 0.20, 0.18, 0.25)
+                Ellipse:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0.00, 0.85, 0.65, 1
+                Line:
+                    width: 3
+                    circle: self.center_x, self.center_y, min(self.width, self.height) / 2
+
+            Widget:
+            Label:
+                text: "🎙️" if root.listening else "🔇"
+                font_size: "56sp"
+                color: 0.00, 0.88, 0.70, 1
+                size_hint_y: None
+                height: dp(70)
+            Label:
+                text: root.status_text
+                bold: True
+                font_size: "28sp"
+                color: 0.00, 0.90, 0.72, 1
+                size_hint_y: None
+                height: dp(42)
+            Widget:
 
     GridLayout:
-        size_hint_y: None
-        height: dp(100)
         cols: 2
+        size_hint_y: None
+        height: dp(90)
         spacing: dp(10)
 
         BoxLayout:
             orientation: "vertical"
-            padding: dp(8)
+            padding: dp(10)
             canvas.before:
                 Color:
-                    rgba: 0.10, 0.12, 0.18, 1
+                    rgba: 0.10, 0.11, 0.16, 1
                 RoundedRectangle:
                     pos: self.pos
                     size: self.size
                     radius: [12, 12, 12, 12]
             Label:
-                text: "Navigation"
-                color: 0.75, 0.82, 0.98, 1
-                font_size: "14sp"
+                text: "GPS"
+                font_size: "13sp"
+                color: 0.58, 0.63, 0.75, 1
+                halign: "left"
+                text_size: self.size
             Label:
-                text: root.status_text
-                color: 0.43, 0.95, 0.55, 1
+                text: root.gps_state
                 bold: True
-                font_size: "18sp"
+                font_size: "22sp"
+                color: 1, 1, 1, 1
+                halign: "left"
+                text_size: self.size
 
         BoxLayout:
             orientation: "vertical"
-            padding: dp(8)
+            padding: dp(10)
             canvas.before:
                 Color:
-                    rgba: 0.10, 0.12, 0.18, 1
+                    rgba: 0.10, 0.11, 0.16, 1
                 RoundedRectangle:
                     pos: self.pos
                     size: self.size
                     radius: [12, 12, 12, 12]
             Label:
-                text: "Voice State"
-                color: 0.75, 0.82, 0.98, 1
-                font_size: "14sp"
+                text: "VISION"
+                font_size: "13sp"
+                color: 0.58, 0.63, 0.75, 1
+                halign: "left"
+                text_size: self.size
             Label:
-                text: root.listen_state
+                text: root.vision_state
+                bold: True
+                font_size: "22sp"
                 color: 1, 1, 1, 1
-                font_size: "16sp"
+                halign: "left"
+                text_size: self.size
+
+    Label:
+        text: root.listen_state
+        size_hint_y: None
+        height: dp(28)
+        font_size: "16sp"
+        color: 0.65, 0.95, 0.82, 1
+
+    Label:
+        text: root.scene_text
+        text_size: self.width, None
+        halign: "center"
+        valign: "middle"
+        color: 1, 1, 1, 1
+        font_size: "18sp"
 
     Label:
         text: root.permission_text
         size_hint_y: None
-        height: dp(44)
-        color: 0.97, 0.90, 0.52, 1
-        text_size: self.width, None
-        halign: "center"
-        valign: "middle"
-
-    BoxLayout:
-        size_hint_y: None
-        height: dp(54)
-        spacing: dp(8)
-
-        Button:
-            text: "Enable Voice"
-            bold: True
-            background_normal: ""
-            background_color: 0.20, 0.55, 0.90, 1
-            on_release: app.start_voice_engine()
-
-        Button:
-            text: "Disable Voice"
-            bold: True
-            background_normal: ""
-            background_color: 0.35, 0.37, 0.45, 1
-            on_release: app.stop_voice_engine()
-
-    ScrollView:
-        do_scroll_x: False
-        bar_width: dp(6)
-
-        Label:
-            text: root.scene_text
-            size_hint_y: None
-            height: max(self.texture_size[1] + dp(22), dp(140))
-            text_size: self.width - dp(10), None
-            halign: "left"
-            valign: "top"
-            color: 1, 1, 1, 1
-            font_size: "21sp"
-            padding: dp(8), dp(8)
-
-    Label:
-        size_hint_y: None
-        height: dp(76)
-        text: "Voice commands: Start safe navigation, Stop safe navigation, What's ahead, Describe my surroundings, Tell me what is in front of me, Help, Repeat"
-        color: 0.82, 0.87, 0.96, 1
-        text_size: self.width, None
-        halign: "center"
-        valign: "middle"
-        font_size: "14sp"
+        height: dp(26)
+        font_size: "12sp"
+        color: 0.90, 0.85, 0.55, 1

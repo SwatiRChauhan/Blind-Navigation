@@ -68,3 +68,8 @@ buildozer android deploy run
 - Synonyms supported for scene query: "What's ahead", "Describe my surroundings", "Tell me what is in front of me".
 - No TextInput is used in UI or command handling.
 
+
+Simple interface design:
+- Large center status ring with voice state icon.
+- Two small cards for GPS and Vision state.
+- No text input and no command buttons; interaction is fully voice-driven.

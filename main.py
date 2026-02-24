@@ -42,12 +42,14 @@ class LocalSpeaker:
 
 
 class VisionRoot(BoxLayout):
-    status_text = StringProperty("Stopped")
+    status_text = StringProperty("STOPPED")
     permission_text = StringProperty("Permissions: waiting")
     vision_state = StringProperty("Off")
+    gps_state = StringProperty("Off")
     scene_text = StringProperty("Say start safe navigation")
     listen_state = StringProperty("Idle")
     listening = BooleanProperty(False)
+    active = BooleanProperty(False)
 
 
 class VisionCompanionMobile(App):
@@ -85,7 +87,7 @@ class VisionCompanionMobile(App):
         if platform != "android":
             self.permissions_granted = True
             if self.root_view:
-                self.root_view.permission_text = "Permissions: desktop mode"
+                self.root_view.permission_text = "Desktop mode: Android runtime prompts not required"
             self.start_voice_engine()
             self.announce("Voice control ready. Say start safe navigation.")
             return
@@ -127,6 +129,8 @@ class VisionCompanionMobile(App):
         self.voice.start(self._on_voice_text, self._on_voice_status, self._on_voice_error)
         if self.root_view:
             self.root_view.listening = True
+            if self.root_view.listen_state == "Idle":
+                self.root_view.listen_state = "Listening..."
 
     def stop_voice_engine(self) -> None:
         self.voice.stop()
@@ -209,8 +213,10 @@ class VisionCompanionMobile(App):
         self.state.last_critical_condition = ""
 
         if self.root_view:
-            self.root_view.status_text = "Active"
+            self.root_view.active = True
+            self.root_view.status_text = "ACTIVE"
             self.root_view.vision_state = self.detector.engine
+            self.root_view.gps_state = "Locked"
 
         self.announce("Safe navigation started")
         self.start_scan_loop()
@@ -222,8 +228,10 @@ class VisionCompanionMobile(App):
         self.stop_scan_loop()
 
         if self.root_view:
-            self.root_view.status_text = "Stopped"
+            self.root_view.active = False
+            self.root_view.status_text = "STOPPED"
             self.root_view.vision_state = "Off"
+            self.root_view.gps_state = "Off"
 
         self.announce("Safe navigation stopped")
 
