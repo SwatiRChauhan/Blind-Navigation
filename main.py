@@ -82,6 +82,7 @@ class VisionCompanionMobile(App):
         self.detector = YoloDetector()
         self.speaker = LocalSpeaker()
         self.scan_event = None
+        self.permissions_granted = False
 
     def build(self) -> VisionRoot:
         Builder.load_file("vision_companion.kv")
@@ -93,11 +94,57 @@ class VisionCompanionMobile(App):
     # Lifecycle / permission checks
     # -----------------------------
     def bootstrap(self) -> None:
-        # In Kivy Android builds, permissions are requested by manifest + runtime APIs.
-        # For now we keep an explicit status text and fail-loud guidance.
+        self.request_runtime_permissions()
+
+    def request_runtime_permissions(self) -> None:
+        try:
+            from kivy.utils import platform
+        except Exception:
+            platform = "unknown"
+
+        if platform != "android":
+            self.permissions_granted = True
+            if self.root_view:
+                self.root_view.permission_text = "Permissions: desktop mode (Android runtime prompts not applicable)"
+            self.announce("Voice control ready. Say start safe navigation.")
+            return
+
+        try:
+            from android.permissions import Permission, check_permission, request_permissions
+
+            wanted = [
+                Permission.RECORD_AUDIO,
+                Permission.CAMERA,
+                Permission.ACCESS_FINE_LOCATION,
+            ]
+
+            if all(check_permission(p) for p in wanted):
+                self.on_permissions_result(wanted, [True] * len(wanted))
+                return
+
+            if self.root_view:
+                self.root_view.permission_text = "Permissions: requesting microphone, camera, and location"
+            request_permissions(wanted, self.on_permissions_result)
+        except Exception:
+            self.permissions_granted = False
+            if self.root_view:
+                self.root_view.permission_text = "Permissions: request failed on this device"
+            self.announce("Permission request failed. Enable microphone, camera, and location in app settings.")
+
+    def on_permissions_result(self, permissions: list[str], grants: list[bool]) -> None:
+        self.permissions_granted = bool(grants) and all(grants)
+
+        if self.permissions_granted:
+            if self.root_view:
+                self.root_view.permission_text = "Permissions: microphone, camera, and location granted"
+            self.announce("Permissions granted. Say start safe navigation.")
+            return
+
+        missing = [p for p, g in zip(permissions, grants) if not g]
+        missing_text = ", ".join(missing) if missing else "required permissions"
         if self.root_view:
-            self.root_view.permission_text = "Permissions: request microphone, camera, and location on first run"
-        self.announce("Voice control ready. Say start safe navigation.")
+            self.root_view.permission_text = f"Permissions denied: {missing_text}"
+        self.announce("Permissions denied. Enable microphone, camera, and location to run safe navigation.")
 
     # -----------------------------
     # Command processing
@@ -155,6 +202,10 @@ class VisionCompanionMobile(App):
     # -----------------------------
     def start_navigation(self) -> None:
         if self.state.active:
+            return
+        if not self.permissions_granted:
+            self.request_runtime_permissions()
+            self.announce("Cannot start. Please grant microphone, camera, and location permissions.")
             return
         self.state.active = True
         self.state.last_hazard_level = 0

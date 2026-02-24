@@ -20,6 +20,10 @@ Voice lifecycle:
 - Say **"Start safe navigation"** to activate continuous assistance.
 - Say **"Stop safe navigation"** to stop immediately.
 
+Runtime permissions:
+- On Android, the app now explicitly requests **microphone, camera, and location** at startup and again before start if still missing.
+- Navigation will not start until all required permissions are granted.
+
 ## Voice-only control
 - Say **"Start safe navigation"** to activate continuous assistance.
 - Say **"Stop safe navigation"** to stop immediately.
