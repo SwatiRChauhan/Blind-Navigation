@@ -37,3 +37,23 @@ Then open `http://127.0.0.1:4173`.
 ```bash
 python -m pytest tests -q
 ```
+
+
+## Android build (Buildozer)
+1. Install Buildozer and Android prerequisites on Linux.
+2. Initialize config:
+```bash
+buildozer init
+```
+3. In `buildozer.spec`, set:
+   - `source.include_exts = py,kv,png,jpg,atlas`
+   - `requirements = python3,kivy,plyer`
+   - `android.permissions = RECORD_AUDIO,CAMERA,ACCESS_FINE_LOCATION,FOREGROUND_SERVICE,WAKE_LOCK`
+4. Build APK:
+```bash
+buildozer -v android debug
+```
+5. Install on device:
+```bash
+buildozer android deploy run
+```
