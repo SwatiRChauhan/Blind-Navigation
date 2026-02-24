@@ -1,7 +1,7 @@
 kivy>=2.2.0
 plyer>=2.1.0
+speechrecognition>=3.10.0
+pyjnius>=1.6.1
 pytest>=8.0.0
-# Optional for real model inference; app falls back to simulated detections if unavailable.
 ultralytics>=8.0.0
-# Optional desktop TTS fallback
 pyttsx3>=2.90

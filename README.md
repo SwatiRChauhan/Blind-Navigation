@@ -61,3 +61,10 @@ buildozer -v android debug
 ```bash
 buildozer android deploy run
 ```
+
+## 100% voice control flow
+- App starts by requesting microphone/camera/location permissions on Android.
+- Voice engine listens continuously and maps spoken text to command intents.
+- Synonyms supported for scene query: "What's ahead", "Describe my surroundings", "Tell me what is in front of me".
+- No TextInput is used in UI or command handling.
+

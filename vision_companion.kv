@@ -20,7 +20,7 @@
         color: 0.76, 0.93, 1, 1
 
     Label:
-        text: "Offline blind-safe navigation"
+        text: "100% voice-controlled offline navigation"
         size_hint_y: None
         height: dp(32)
         font_size: "16sp"
@@ -28,7 +28,7 @@
 
     GridLayout:
         size_hint_y: None
-        height: dp(94)
+        height: dp(100)
         cols: 2
         spacing: dp(10)
 
@@ -43,7 +43,7 @@
                     size: self.size
                     radius: [12, 12, 12, 12]
             Label:
-                text: "Status"
+                text: "Navigation"
                 color: 0.75, 0.82, 0.98, 1
                 font_size: "14sp"
             Label:
@@ -63,11 +63,11 @@
                     size: self.size
                     radius: [12, 12, 12, 12]
             Label:
-                text: "Vision Engine"
+                text: "Voice State"
                 color: 0.75, 0.82, 0.98, 1
                 font_size: "14sp"
             Label:
-                text: root.vision_state
+                text: root.listen_state
                 color: 1, 1, 1, 1
                 font_size: "16sp"
 
@@ -80,6 +80,25 @@
         halign: "center"
         valign: "middle"
 
+    BoxLayout:
+        size_hint_y: None
+        height: dp(54)
+        spacing: dp(8)
+
+        Button:
+            text: "Enable Voice"
+            bold: True
+            background_normal: ""
+            background_color: 0.20, 0.55, 0.90, 1
+            on_release: app.start_voice_engine()
+
+        Button:
+            text: "Disable Voice"
+            bold: True
+            background_normal: ""
+            background_color: 0.35, 0.37, 0.45, 1
+            on_release: app.stop_voice_engine()
+
     ScrollView:
         do_scroll_x: False
         bar_width: dp(6)
@@ -87,7 +106,7 @@
         Label:
             text: root.scene_text
             size_hint_y: None
-            height: max(self.texture_size[1] + dp(22), dp(130))
+            height: max(self.texture_size[1] + dp(22), dp(140))
             text_size: self.width - dp(10), None
             halign: "left"
             valign: "top"
@@ -95,37 +114,10 @@
             font_size: "21sp"
             padding: dp(8), dp(8)
 
-    BoxLayout:
-        size_hint_y: None
-        height: dp(56)
-        spacing: dp(8)
-
-        TextInput:
-            text: root.command_input
-            on_text: root.command_input = self.text
-            multiline: False
-            hint_text: "Voice/typed command fallback"
-            font_size: "18sp"
-            padding: dp(12), dp(14)
-            background_normal: ""
-            background_active: ""
-            background_color: 0.16, 0.18, 0.25, 1
-            foreground_color: 1, 1, 1, 1
-            cursor_color: 0.6, 0.9, 1, 1
-
-        Button:
-            text: "Send"
-            size_hint_x: 0.32
-            bold: True
-            font_size: "18sp"
-            background_normal: ""
-            background_color: 0.20, 0.55, 0.90, 1
-            on_release: app.on_submit_command()
-
     Label:
         size_hint_y: None
-        height: dp(64)
-        text: "Commands: Start safe navigation, Stop safe navigation, What is ahead, Describe surroundings, Help, Repeat"
+        height: dp(76)
+        text: "Voice commands: Start safe navigation, Stop safe navigation, What's ahead, Describe my surroundings, Tell me what is in front of me, Help, Repeat"
         color: 0.82, 0.87, 0.96, 1
         text_size: self.width, None
         halign: "center"
